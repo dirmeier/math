@@ -1,0 +1,4 @@
+var structstan_1_1math_1_1internal_1_1finite_3_01_eigen_1_1_matrix_3_01_t_00_01_r_00_01_c_01_4_00_01true_01_4 =
+[
+    [ "check", "de/d56/structstan_1_1math_1_1internal_1_1finite_3_01_eigen_1_1_matrix_3_01_t_00_01_r_00_01_c_01_4_00_01true_01_4.html#adc6f08cbeb7af430971d1bf637ed354a", null ]
+];
