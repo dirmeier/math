@@ -218,9 +218,9 @@ TEST(ProbDistributionsPoissonBinomial, chiSquareGoodnessFitTest) {
   vec probs(100);
   probs.fill(0.6);
   while (count < N) {
-    int a = stan::math::poisson_binomial_rng(probs, rng);
+    std::vector<int> a = stan::math::poisson_binomial_rng(probs, rng);
     int i = 0;
-    while (i < K - 1 && a > loc[i]) {
+    while (i < K - 1 && a[0] > loc[i]) {
       ++i;
     }
     ++bin[i];
