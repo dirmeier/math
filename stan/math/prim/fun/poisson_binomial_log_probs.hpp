@@ -21,15 +21,22 @@ namespace math {
  * @param theta N-dimensional vector of success probabilities for each trial
  * @return the last row of the computed log probability matrix
  */
-template <typename T_theta, typename T_scalar = scalar_type_t<T_theta>,
-          require_eigen_vector_t<T_theta>* = nullptr>
-plain_type_t<T_theta> poisson_binomial_log_probs(int y, const T_theta& theta) {
+template <typename T_y, typename T_theta, typename T_scalar = scalar_type_t<T_theta>,
+          require_stan_scalar_t<T_y>* = nullptr,
+    require_all_not_nonscalar_prim_or_rev_kernel_expression_t<T_theta>* = nullptr>
+plain_type_t<T_theta> poisson_binomial_log_probs(const T_y& y, const T_theta& theta) {
   int size_theta = theta.size();
+
   plain_type_t<T_theta> log_theta = log(theta);
   plain_type_t<T_theta> log1m_theta = log1m(theta);
 
+  using T_y_ref = ref_type_if_t<!is_constant<T_y>::value, T_y>;
+  T_y_ref y_ref = y;
+  scalar_seq_view<T_y_ref> y_vec(y_ref);
+  int y_size = std::ceil(y_vec.val(0));
+
   Eigen::Matrix<T_scalar, Eigen::Dynamic, Eigen::Dynamic> alpha(size_theta + 1,
-                                                                y + 1);
+                                                                y_size + 1);
 
   // alpha[i, j] = log prob of j successes in first i trials
   alpha(0, 0) = 0.0;
@@ -38,7 +45,7 @@ plain_type_t<T_theta> poisson_binomial_log_probs(int y, const T_theta& theta) {
     alpha(i + 1, 0) = alpha(i, 0) + log1m_theta[i];
 
     // 0 < j < i successes in i trials
-    for (int j = 0; j < std::min(y, i); ++j) {
+    for (int j = 0; j < std::min(y_size, i); ++j) {
       alpha(i + 1, j + 1) = log_sum_exp(alpha(i, j) + log_theta[i],
                                         alpha(i, j + 1) + log1m_theta[i]);
     }
@@ -52,7 +59,8 @@ plain_type_t<T_theta> poisson_binomial_log_probs(int y, const T_theta& theta) {
   return alpha.row(size_theta);
 }
 
-template <typename T_y, typename T_theta, require_vt_integral<T_y>* = nullptr>
+template <typename T_y, typename T_theta,
+    require_container_t<T_y>* = nullptr>
 auto poisson_binomial_log_probs(const T_y& y, const T_theta& theta) {
   using T_scalar = scalar_type_t<T_theta>;
   size_t max_sizes = std::max(stan::math::size(y), size_mvt(theta));
